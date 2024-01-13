@@ -1,13 +1,32 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-
 from PIL import ImageFilter
 import random
+import numpy as np
 
+from matplotlib import pyplot as plt
+from skimage.color import rgb2hed
+from torchvision import transforms
 
+cmap = plt.get_cmap('jet')
+
+normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+
+transform = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225]),
+                transforms.RandomResizedCrop(224, scale=(0.2, 1.)),
+            ])
+
+augmentation_p = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.RandomResizedCrop(224, scale=(0.2, 1.)),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor(),
+    normalize
+])
+
+from freq_transform import freq_transform_func
 class TwoCropsTransform:
     """Take two random crops of one image as the query and key."""
 
@@ -15,8 +34,11 @@ class TwoCropsTransform:
         self.base_transform = base_transform
 
     def __call__(self, x):
-        q = self.base_transform(x)
+        import random
+        x1 = freq_transform_func(x, random.randint(1,3))
+        q = self.base_transform(x1)
         k = self.base_transform(x)
+        print(q.shape,k.shape)
         return [q, k]
 
 

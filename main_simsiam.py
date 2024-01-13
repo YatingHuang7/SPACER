@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-
 import argparse
 import builtins
 import math
@@ -42,13 +35,13 @@ parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet50',
                     help='model architecture: ' +
                         ' | '.join(model_names) +
                         ' (default: resnet50)')
-parser.add_argument('-j', '--workers', default=32, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers (default: 32)')
-parser.add_argument('--epochs', default=100, type=int, metavar='N',
+parser.add_argument('--epochs', default=400, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=512, type=int,
+parser.add_argument('-b', '--batch-size', default=128, type=int,
                     metavar='N',
                     help='mini-batch size (default: 512), this is the total '
                          'batch size of all GPUs on the current node when '
@@ -151,7 +144,7 @@ def main_worker(gpu, ngpus_per_node, args):
     print("=> creating model '{}'".format(args.arch))
     model = simsiam.builder.SimSiam(
         models.__dict__[args.arch],
-        args.dim, args.pred_dim)
+        args.dim, args.pred_dim) # ######################################
 
     # infer learning rate before changing batch size
     init_lr = args.lr * args.batch_size / 256
@@ -181,10 +174,10 @@ def main_worker(gpu, ngpus_per_node, args):
         model = model.cuda(args.gpu)
         # comment out the following line for debugging
         raise NotImplementedError("Only DistributedDataParallel is supported.")
-    else:
+    # else:
         # AllGather implementation (batch shuffle, queue update, etc.) in
         # this code only supports DistributedDataParallel.
-        raise NotImplementedError("Only DistributedDataParallel is supported.")
+        # raise NotImplementedError("Only DistributedDataParallel is supported.")
     print(model) # print model after SyncBatchNorm
 
     # define loss function (criterion) and optimizer
@@ -291,7 +284,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
             images[1] = images[1].cuda(args.gpu, non_blocking=True)
 
         # compute output and loss
-        p1, p2, z1, z2 = model(x1=images[0], x2=images[1])
+        p1, p2,z1, z2 = model(x1=images[0], x2=images[1])
         loss = -(criterion(p1, z2).mean() + criterion(p2, z1).mean()) * 0.5
 
         losses.update(loss.item(), images[0].size(0))

@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-
 import argparse
 import builtins
 import math
@@ -82,7 +75,7 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'multi node data parallel training')
 
 # additional configs:
-parser.add_argument('--pretrained', default='', type=str,
+parser.add_argument('--pretrained', default='checkpoint_0099.pth.tar', type=str,
                     help='path to simsiam pretrained checkpoint')
 parser.add_argument('--lars', action='store_true',
                     help='Use LARS')
@@ -125,7 +118,7 @@ def main():
         main_worker(args.gpu, ngpus_per_node, args)
 
 
-def main_worker(gpu, ngpus_per_node, args):
+def main_worker(gpu, ngpus_per_node, args, apex=None):
     global best_acc1
     args.gpu = gpu
 
